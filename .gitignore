@@ -1,0 +1,31 @@
+google-credentials.json
+pages.config.json
+drafts.json
+get_owner.js
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
+.next/
+out/
+build/
+
+# Misc
+.DS_Store
+*.pem
+
+# Env
+.env*
+!.env.example
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify/
