@@ -5,10 +5,16 @@ import path from "path";
 export async function GET() {
   try {
     const configPath = path.join(process.cwd(), "pages.config.json");
-    if (!fs.existsSync(configPath)) {
+    let fileContent = "";
+    
+    if (fs.existsSync(configPath)) {
+      fileContent = fs.readFileSync(configPath, "utf-8");
+    } else if (process.env.PAGES_CONFIG) {
+      fileContent = process.env.PAGES_CONFIG;
+    } else {
       return NextResponse.json({ pages: [] });
     }
-    const fileContent = fs.readFileSync(configPath, "utf-8");
+    
     const pages = JSON.parse(fileContent);
     
     // Remove access tokens from the public list for security, 

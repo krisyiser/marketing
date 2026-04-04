@@ -8,7 +8,17 @@ export async function POST(req: NextRequest) {
 
     // 1. Find the page config to get the token
     const configPath = path.join(process.cwd(), "pages.config.json");
-    const pages = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    let fileContent = "";
+    
+    if (fs.existsSync(configPath)) {
+      fileContent = fs.readFileSync(configPath, "utf-8");
+    } else if (process.env.PAGES_CONFIG) {
+      fileContent = process.env.PAGES_CONFIG;
+    } else {
+      return NextResponse.json({ error: "Configuration not found" }, { status: 500 });
+    }
+    
+    const pages = JSON.parse(fileContent);
     const page = pages.find((p: any) => p.id === pageId);
 
     if (!page) {

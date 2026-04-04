@@ -5,10 +5,19 @@ import path from "path";
 const CREDENTIALS_PATH = path.join(process.cwd(), "google-credentials.json");
 
 async function getDriveClient() {
-  const auth = new google.auth.GoogleAuth({
-    keyFile: CREDENTIALS_PATH,
-    scopes: ["https://www.googleapis.com/auth/drive.readonly"],
-  });
+  let auth;
+  if (process.env.GOOGLE_CREDENTIALS) {
+    const creds = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    auth = new google.auth.GoogleAuth({
+      credentials: creds,
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+    });
+  } else {
+    auth = new google.auth.GoogleAuth({
+      keyFile: CREDENTIALS_PATH,
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+    });
+  }
   return google.drive({ version: "v3", auth });
 }
 
