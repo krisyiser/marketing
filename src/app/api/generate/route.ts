@@ -36,15 +36,14 @@ async function getDriveClient() {
 export async function POST(req: NextRequest) {
   try {
     const { prompt, platform, format, imageUrl, selectedId } = await req.json();
+    console.log("[AI] Starting generation process for:", selectedId || imageUrl);
 
     let imageBase64 = "";
-
-    // 1. If we have a file ID, fetch the image from Drive locally
-    // This solves the "localhost" access error from OpenRouter
     const fileId = selectedId || imageUrl?.split('/').pop();
 
     if (fileId) {
       try {
+        console.log("[AI] Fetching image from Drive:", fileId);
         const drive = await getDriveClient();
         const response = await drive.files.get(
           { fileId: fileId, alt: "media" },
@@ -54,8 +53,9 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(response.data as ArrayBuffer);
         const mimeType = response.headers["content-type"] || "image/jpeg";
         imageBase64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
+        console.log("[AI] Image fetched successfully. Length:", imageBase64.length);
       } catch (err) {
-        console.error("Error fetching image for AI Vision:", err);
+        console.error("[AI] Critical error fetching image from Drive:", err);
       }
     }
 
@@ -63,22 +63,21 @@ export async function POST(req: NextRequest) {
 REGLAS:
 1. NO escribas nada nuevo.
 2. NO modifiques el texto de la plantilla elegida.
-3. Elige la plantilla que mejor se adapte a lo que se ve en la imagen (ej: si hay una casa, elige la de domicilio; si hay un microscopio, la de tecnología).
+3. Elige la plantilla que mejor se adapte a lo que se ve en la imagen.
 4. Si no hay una relación clara, elige la opción más general y profesional.
-5. Devuelve ÚNICAMENTE el texto de la plantilla elegida, sin explicaciones ni títulos.`;
+5. Devuelve ÚNICAMENTE el texto de la plantilla elegida, sin explicaciones ni introducciones.`;
 
+    console.log("[AI] Preparing OpenRouter payload...");
     const openRouterBody: any = {
       model: "nvidia/nemotron-nano-12b-v2-vl:free",
       messages: [
         { 
           role: "user", 
           content: [
-            { type: "text", text: `${systemPrompt}\n\n${prompt}` },
+            { type: "text", text: `${systemPrompt}\n\nLISTA DE PLANTILLAS:\n${prompt}` },
             ...(imageBase64 ? [{ 
               type: "image_url", 
-              image_url: { 
-                url: imageBase64 // This is now a Base64 string!
-              } 
+              image_url: { url: imageBase64 } 
             }] : [])
           ] 
         }
@@ -86,6 +85,7 @@ REGLAS:
       stream: true,
     };
 
+    console.log("[AI] Calling OpenRouter API...");
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -96,10 +96,12 @@ REGLAS:
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OpenRouter Error: ${response.status} - ${errorText}`);
+      const errorContent = await response.text();
+      console.error("[AI] OpenRouter Error Response:", errorContent);
+      return new Response(JSON.stringify({ error: `IA Error: ${response.status} - ${errorContent}` }), { status: response.status });
     }
 
+    console.log("[AI] Connection established. Streaming response...");
     const stream = new ReadableStream({
       async start(controller) {
         if (!response.body) return controller.close();
@@ -117,13 +119,15 @@ REGLAS:
           for (const line of lines) {
             const trimmed = line.trim();
             if (trimmed.startsWith("data: ")) {
-              const dataStr = trimmed.slice(6);
+              const dataStr = trimmed.slice(6).trim();
               if (dataStr === "[DONE]") continue;
               try {
                 const data = JSON.parse(dataStr);
                 const content = data.choices[0]?.delta?.content;
                 if (content) controller.enqueue(encoder.encode(content));
-              } catch (_) {}
+              } catch (e) {
+                  // Silent fail for malformed JSON chunks
+              }
             }
           }
         }
@@ -135,7 +139,7 @@ REGLAS:
       headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
     });
   } catch (error: any) {
-    console.error("AI Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    console.error("[AI] Fatal Route Error:", error);
+    return new Response(JSON.stringify({ error: error.message || "Unknown error in AI route" }), { status: 500 });
   }
 }
