@@ -322,36 +322,6 @@ export default function Home() {
             </button>
           ))}
         </div>
-
-        <div className="bg-neutral-950/50 p-6 rounded-[2rem] border border-neutral-800 flex flex-col gap-3">
-            <p className="text-[9px] text-neutral-600 font-black uppercase tracking-widest mb-1 text-center">Diagnostic Tools</p>
-            <button 
-              disabled={!selectedPage}
-              onClick={async () => {
-                if (!selectedPage) return;
-                alert("Enviando punto de prueba a Facebook...");
-                try {
-                    const res = await fetch("/api/publish", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ pageId: selectedPage.id, platform: 'Facebook', message: '.' })
-                    });
-                    const data = await res.json();
-                    if (data.success) alert("¡Conexión EXITOSA! El punto se publicó en el muro.");
-                    else alert(`Error de Conexión: ${data.message || data.error}`);
-                } catch(e) {
-                    alert("Error fatal al conectar con el servidor.");
-                }
-              }}
-              className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-black uppercase text-neutral-400 hover:text-white rounded-2xl transition-all flex items-center justify-center gap-2">
-                <Send className="h-3 w-3" />
-                Probar Conexión (.)
-            </button>
-            <div className="flex justify-between items-center bg-neutral-900 p-3 rounded-2xl border border-neutral-800">
-                <span className="text-[10px] font-bold text-neutral-400">Netlify Status</span>
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
-            </div>
-        </div>
       </nav>
 
       <main className="flex-1 p-4 sm:p-10 lg:p-12 overflow-y-auto bg-neutral-950">
@@ -365,8 +335,29 @@ export default function Home() {
                 </div>
                 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
                         <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase rounded-full border border-emerald-500/20 tracking-widest">{currentMonthName} • CAMPANA ACTIVA</span>
+                        <button 
+                            onClick={async () => {
+                                if (!selectedPage) return;
+                                const ok = confirm(`¿Enviar post de prueba (.) a la página de ${selectedPage.name}?`);
+                                if (!ok) return;
+                                try {
+                                    const res = await fetch("/api/publish", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ pageId: selectedPage.id, platform: 'Facebook', message: '.' })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) alert("¡Prueba EXITOSA! El punto (.) ha sido publicado en el muro.");
+                                    else alert(`Fallo de Conexión: ${data.message || data.error}`);
+                                } catch(e) { alert("Error al conectar con la API."); }
+                            }}
+                            className="flex items-center gap-2 px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-[9px] font-black uppercase rounded-full border border-neutral-700 transition-all active:scale-95"
+                        >
+                            <Send className="h-2.5 w-2.5" />
+                            Test Conexión (.)
+                        </button>
                     </div>
                     <h2 className="text-5xl sm:text-7xl font-black text-white tracking-tighter mix-blend-difference">{selectedPage.name}</h2>
                     <p className="text-neutral-500 mt-6 text-lg font-medium max-w-xl">Generador de contenido sistemático. Acomodamos tu mes completo basado en tus 20 reglas de copy universales.</p>
