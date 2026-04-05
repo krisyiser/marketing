@@ -31,22 +31,31 @@ export async function POST(req: NextRequest) {
     let endpoint = "";
     let body: any = {};
 
-    // Ensure the image URL is absolute for Facebook
-    const finalImageUrl = imageUrl.includes('http') ? imageUrl : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://socimation.gavalab.com'}${imageUrl}`;
-    console.log(`[Publish] Final Image URL for FB: ${finalImageUrl}`);
-
     if (platform === "Facebook") {
-      endpoint = `https://graph.facebook.com/v19.0/${pageId}/photos`;
-      body = {
-        url: finalImageUrl,
-        message: message,
-        access_token: accessToken,
-      };
+      if (imageUrl) {
+        // Modo Foto (Campaña Real)
+        const finalImageUrl = imageUrl.includes('http') ? imageUrl : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://socimation.gavalab.com'}${imageUrl}`;
+        console.log(`[Publish] PHOTO MODE: ${finalImageUrl}`);
+        endpoint = `https://graph.facebook.com/v19.0/${pageId}/photos`;
+        body = {
+            url: finalImageUrl,
+            message: message,
+            access_token: accessToken,
+        };
+      } else {
+        // Modo Texto (Test Directo)
+        console.log(`[Publish] TEXT/FEED MODE: Testing connection for ${pageId}`);
+        endpoint = `https://graph.facebook.com/v19.0/${pageId}/feed`;
+        body = {
+            message: message || ".",
+            access_token: accessToken,
+        };
+      }
     } else if (platform === "Instagram") {
       // Logic...
     }
 
-    console.log(`[Publish] Sending to Meta Endpoint: ${endpoint}`);
+    console.log(`[Publish] Sending POST to: ${endpoint}`);
     const fbResponse = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,7 +74,7 @@ export async function POST(req: NextRequest) {
       }, { status: fbResponse.status });
     }
 
-    console.log("[Publish] Success! Post ID:", result.id);
+    console.log("[Publish] Success! ID:", result.id);
     return NextResponse.json({ success: true, result });
   } catch (error: any) {
     console.error("[Publish] Fatal Crash:", error);
