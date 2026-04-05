@@ -201,6 +201,21 @@ export default function Home() {
     setIsPlanning(true);
     
     const today = new Date();
+    // SISTEMA DE HORARIOS ESTRATÉGICOS (Facebook High Engagement)
+    const timeWindows = [
+        { start: 8, end: 10, name: "MORNING" },    // 08:30 - 10:30
+        { start: 13, end: 15, name: "AFTERNOON" }, // 13:00 - 15:30
+        { start: 19, end: 21, name: "EVENING" }    // 19:15 - 21:00
+    ];
+
+    const getRandomSmartTime = () => {
+        const window = timeWindows[Math.floor(Math.random() * timeWindows.length)];
+        const hour = Math.floor(Math.random() * (window.end - window.start + 1)) + window.start;
+        const minute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
+        const hourStr = hour.toString().padStart(2, '0');
+        return `${hourStr}:${minute}`;
+    };
+
     const newCampaign: CampaignItem[] = posts.map((post, index) => {
         const postDate = new Date(today);
         postDate.setDate(today.getDate() + index); // One daily
@@ -214,7 +229,7 @@ export default function Home() {
             copy: templates[templateIndex],
             platform: 'Facebook',
             date: postDate.toISOString().split('T')[0],
-            time: "09:00",
+            time: getRandomSmartTime(),
             status: 'pending'
         };
     });
