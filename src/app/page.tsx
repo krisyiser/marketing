@@ -322,6 +322,36 @@ export default function Home() {
             </button>
           ))}
         </div>
+
+        <div className="bg-neutral-950/50 p-6 rounded-[2rem] border border-neutral-800 flex flex-col gap-3">
+            <p className="text-[9px] text-neutral-600 font-black uppercase tracking-widest mb-1 text-center">Diagnostic Tools</p>
+            <button 
+              disabled={!selectedPage}
+              onClick={async () => {
+                if (!selectedPage) return;
+                alert("Enviando punto de prueba a Facebook...");
+                try {
+                    const res = await fetch("/api/publish", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ pageId: selectedPage.id, platform: 'Facebook', message: '.' })
+                    });
+                    const data = await res.json();
+                    if (data.success) alert("¡Conexión EXITOSA! El punto se publicó en el muro.");
+                    else alert(`Error de Conexión: ${data.message || data.error}`);
+                } catch(e) {
+                    alert("Error fatal al conectar con el servidor.");
+                }
+              }}
+              className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-[10px] font-black uppercase text-neutral-400 hover:text-white rounded-2xl transition-all flex items-center justify-center gap-2">
+                <Send className="h-3 w-3" />
+                Probar Conexión (.)
+            </button>
+            <div className="flex justify-between items-center bg-neutral-900 p-3 rounded-2xl border border-neutral-800">
+                <span className="text-[10px] font-bold text-neutral-400">Netlify Status</span>
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+            </div>
+        </div>
       </nav>
 
       <main className="flex-1 p-4 sm:p-10 lg:p-12 overflow-y-auto bg-neutral-950">
