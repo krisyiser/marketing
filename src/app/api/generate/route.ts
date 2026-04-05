@@ -4,13 +4,29 @@ import path from "path";
 
 export const runtime = "nodejs"; // Need nodejs for googleapis
 
-const CREDENTIALS_PATH = path.join(process.cwd(), "google-credentials.json");
-
 async function getDriveClient() {
-  const auth = new google.auth.GoogleAuth({
-    keyFile: CREDENTIALS_PATH,
-    scopes: ["https://www.googleapis.com/auth/drive.readonly"],
-  });
+  let auth;
+  if (process.env.GOOGLE_PRIVATE_KEY) {
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+    privateKey = privateKey.replace(/^["']|["']$/g, '');
+    privateKey = privateKey.replace(/\\n/g, '\n');
+
+    auth = new google.auth.GoogleAuth({
+      credentials: {
+        type: "service_account",
+        project_id: "socimation-manager",
+        private_key: privateKey.trim(),
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      },
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+    });
+  } else {
+    const CREDENTIALS_PATH = path.join(process.cwd(), "google-credentials.json");
+    auth = new google.auth.GoogleAuth({
+      keyFile: CREDENTIALS_PATH,
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
+    });
+  }
   return google.drive({ version: "v3", auth });
 }
 
