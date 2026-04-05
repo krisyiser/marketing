@@ -59,16 +59,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const systemPrompt = `Eres el mejor Copywriter Creativo de México. Tu especialidad es escribir para GavaLab, un laboratorio humano y cercano en Papantla.
-TU OBJETIVO: Que nadie sospeche que eres una IA.
-
-REGLAS DE ORO (NUNCA LAS ROMPAS):
-1. Cero Inventos Lingüísticos: No inventes palabras (NADA de "Ágane", "Respaldé" mal usado). Usa "Agenda", "Ven", "Protege".
-2. Tono de Papantla: Habla como un vecino amable. Menos "Certeza" y más "Tranquilidad". Menos "Precisión Científica" y más "Resultados en los que puedes confiar".
-3. Ganchos Reales: Empieza con algo que le pase a la gente real. (Ej: "La salud de tu bebé es lo primero" en lugar de frases poéticas de IA).
-4. Hashtags Cortos y Humanos: Máximo 3 o 4. Nada de #ControlDeAntecedentesGeneticos. Usa cosas como #GavaLab #Papantla #Salud.
-5. Cierre Natural: El CTA debe ser una invitación amable (Ej: "Mándanos un mensajito para cualquier duda").
-6. Revisión Final: Antes de responder, lee tu texto y asegúrate de que no suene a manual de instrucciones.`;
+    const systemPrompt = `Eres un Curador de Contenido experto. Tu misión es analizar visualmente una imagen y SELECCIONAR el mejor copy de una lista de plantillas proporcionada.
+REGLAS:
+1. NO escribas nada nuevo.
+2. NO modifiques el texto de la plantilla elegida.
+3. Elige la plantilla que mejor se adapte a lo que se ve en la imagen (ej: si hay una casa, elige la de domicilio; si hay un microscopio, la de tecnología).
+4. Si no hay una relación clara, elige la opción más general y profesional.
+5. Devuelve ÚNICAMENTE el texto de la plantilla elegida, sin explicaciones ni títulos.`;
 
     const openRouterBody: any = {
       model: "nvidia/nemotron-nano-12b-v2-vl:free",

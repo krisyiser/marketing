@@ -15,6 +15,8 @@ import {
   CheckCircle,
   LayoutGrid,
   History,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
@@ -32,9 +34,7 @@ interface PageConfig {
   name: string;
   slug: string;
   category: string;
-  brandManual: string;
-  rules: string;
-  context: string;
+  templates?: string[];
   driveFolderId: string | null;
 }
 
@@ -55,11 +55,11 @@ function DriveExplorer({ folderId, onSelectImage, onSync, isPlanning }: { folder
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setDriveData(data);
-      (window as any)._lastDriveData = data; // Global access for batch
-      if (data.posts.length > 0) {
+      (window as any)._lastDriveData = data;
+      if (data.posts && data.posts.length > 0) {
         setActiveTab('posts');
         (window as any)._activeTab = 'posts';
-      } else if (data.stories.length > 0) {
+      } else if (data.stories && data.stories.length > 0) {
         setActiveTab('stories');
         (window as any)._activeTab = 'stories';
       }
@@ -74,7 +74,6 @@ function DriveExplorer({ folderId, onSelectImage, onSync, isPlanning }: { folder
     loadFolder(folderId);
   }, [folderId, loadFolder]);
 
-  // Use proxy for images to solve Drive access/auth issues
   const getImageUrl = (fileId: string) => `/api/drive/image/${fileId}`;
 
   const renderGrid = (files: DriveFile[]) => (
@@ -146,23 +145,22 @@ export default function Home() {
   const [selectedImage, setSelectedImage] = useState<DriveFile | null>(null);
   const [platform, setPlatform] = useState("Facebook");
   const [format, setFormat] = useState("Post (1:1)");
-  const [prompt, setPrompt] = useState("");
   const [output, setOutput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<string | null>(null);
 
-  const [brandManual, setBrandManual] = useState("");
-  const [brandRules, setBrandRules] = useState("");
-  const [brandContext, setBrandContext] = useState("");
+  const [templates, setTemplates] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [newTemplate, setNewTemplate] = useState("");
 
   const [drafts, setDrafts] = useState<any[]>([]);
   const [isPlanning, setIsPlanning] = useState(false);
 
-  // Load drafts when page changes
+  // Load drafts and templates when page changes
   useEffect(() => {
     if (selectedPage) {
+      setTemplates(selectedPage.templates || []);
       fetch(`/api/pages/drafts?pageId=${selectedPage.id}`)
         .then(res => res.json())
         .then(data => setDrafts(data.drafts || []));
@@ -177,14 +175,12 @@ export default function Home() {
         if (data.pages.length > 0) {
           const firstPage = data.pages[0];
           setSelectedPage(firstPage);
-          setBrandManual(firstPage.brandManual);
-          setBrandRules(firstPage.rules);
-          setBrandContext(firstPage.context);
+          setTemplates(firstPage.templates || []);
         }
       });
   }, []);
 
-  const handleUpdateConfig = async () => {
+  const handleUpdateTemplates = async (updated: string[]) => {
     if (!selectedPage) return;
     setIsSaving(true);
     try {
@@ -193,14 +189,11 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pageId: selectedPage.id,
-          manual: brandManual,
-          rules: brandRules,
-          context: brandContext
+          templates: updated
         }),
       });
-      // Update local state
-      setPages(prev => prev.map(p => p.id === selectedPage.id ? { ...p, brandManual, rules: brandRules, context: brandContext } : p));
-      setSelectedPage({ ...selectedPage, brandManual, rules: brandRules, context: brandContext });
+      setPages(prev => prev.map(p => p.id === selectedPage.id ? { ...p, templates: updated } : p));
+      setSelectedPage({ ...selectedPage, templates: updated });
     } catch (err) {
       console.error(err);
     } finally {
@@ -208,13 +201,25 @@ export default function Home() {
     }
   };
 
+  const addTemplate = () => {
+    if (!newTemplate.trim()) return;
+    const updated = [...templates, newTemplate.trim()];
+    setTemplates(updated);
+    setNewTemplate("");
+    handleUpdateTemplates(updated);
+  };
+
+  const removeTemplate = (index: number) => {
+    const updated = templates.filter((_, i) => i !== index);
+    setTemplates(updated);
+    handleUpdateTemplates(updated);
+  };
+
   const handleSelectPage = (p: PageConfig) => {
     setSelectedPage(p);
     setSelectedImage(null);
     setOutput("");
-    setBrandManual(p.brandManual || "");
-    setBrandRules(p.rules || "");
-    setBrandContext(p.context || "");
+    setTemplates(p.templates || []);
   };
 
   const handleGenerate = async () => {
@@ -223,31 +228,22 @@ export default function Home() {
     setOutput("");
     setPublishStatus(null);
     
-    // Enrich prompt with full brand strategy
-    const fullPrompt = `PÁGINA: ${selectedPage.name}
-GIRO/CONTEXTO: ${brandContext}
-MANUAL DE MARCA: ${brandManual}
-REGLAS DE ORO: ${brandRules}
-
-CONTENIDO VISUAL: Analiza la imagen.
-PLATAFORMA: ${platform} (${format}).
-OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anteriores.`;
-
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          prompt: fullPrompt, 
+          prompt: `ELIGE EL MEJOR COPY DE ESTA LISTA BASÁNDOTE EN LA IMAGEN:\n\n${templates.join('\n---\n')}`, 
           platform, 
           format,
           selectedId: selectedImage.id,
           imageUrl: `${window.location.origin}/api/drive/image/${selectedImage.id}`
         }),
       });
-      const reader = response.body?.getReader();
+      if (!response.body) throw new Error("No response body");
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      while (reader) {
+      while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         setOutput(prev => prev + decoder.decode(value, { stream: true }));
@@ -286,18 +282,10 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
   const handleBatchGenerate = async (files: DriveFile[], category: 'posts' | 'stories') => {
     if (!selectedPage || files.length === 0) return;
     setIsPlanning(true);
-    
-    // We'll build the final list as we go
     const finalDrafts: any[] = [];
 
     for (const file of files) {
-      const fullPrompt = `PÁGINA: ${selectedPage.name}
-GIRO/CONTEXTO: ${brandContext}
-MANUAL DE MARCA: ${brandManual}
-REGLAS DE ORO: ${brandRules}
-CONTENIDO VISUAL: Analiza esta imagen y escribe un copy corto y directo.
-FORMATO: ${category === 'posts' ? 'Post' : 'Historia'}
-OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anteriores.`;
+      const fullPrompt = `ELIGE EL MEJOR COPY DE ESTA LISTA BASÁNDOTE EN LA IMAGEN:\n\n${templates.join('\n---\n')}`;
 
       try {
         const response = await fetch("/api/generate", {
@@ -314,8 +302,6 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
           const { done, value } = await reader.read();
           if (done) break;
           fullText += decoder.decode(value, { stream: true });
-          
-          // Live preview in UI
           setDrafts(prev => {
              const others = prev.filter(d => d.id !== file.id);
              return [...others, { id: file.id, name: file.name, copy: fullText, date: new Date().toISOString().split('T')[0], pageId: selectedPage.id, type: category }];
@@ -325,7 +311,6 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
       } catch (err) { console.error("Batch error:", err); }
     }
 
-    // Single persistence call at the end
     await fetch("/api/pages/drafts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -363,41 +348,40 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
       <main className="flex-1 p-10 overflow-y-auto">
         {selectedPage ? (
           <div className="max-w-6xl mx-auto flex flex-col gap-10 animate-in fade-in duration-500">
-            <header className="flex justify-between items-center bg-neutral-900/40 p-10 rounded-[3rem] border border-neutral-800 shadow-2xl">
-              <div>
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-neutral-900/40 p-8 md:p-10 rounded-[3rem] border border-neutral-800 shadow-2xl gap-8">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded-full border border-indigo-500/20">{selectedPage.category}</span>
                   <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase rounded-full border border-emerald-500/20">Active</span>
                 </div>
-                <h2 className="text-5xl font-black text-white tracking-tight">{selectedPage.name}</h2>
+                <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">{selectedPage.name}</h2>
               </div>
               
-              {/* BRAND CONFIG EDITOR */}
-              <div className="flex flex-col gap-4 min-w-[350px]">
-                <div className="grid grid-cols-3 gap-2 p-1 bg-neutral-950 rounded-xl border border-neutral-800">
-                  <button className="text-[9px] font-black uppercase py-2 bg-neutral-800 rounded-lg">Manual</button>
-                  <button className="text-[9px] font-black uppercase py-2 text-neutral-500">Reglas</button>
-                  <button className="text-[9px] font-black uppercase py-2 text-neutral-500">Giro</button>
-                </div>
-                <div className="flex flex-col gap-2">
-                   <div className="flex gap-2 h-32">
-                      <div className="flex-1 space-y-2">
-                        <label className="text-[9px] uppercase font-black text-neutral-600 px-1">Manual de Marca</label>
-                        <textarea value={brandManual} onChange={e => setBrandManual(e.target.value)} className="w-full h-24 bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-[11px] outline-none focus:border-indigo-500 transition-all resize-none" />
+              {/* COPY LIBRARIAN UI */}
+              <div className="flex-1 w-full bg-neutral-950/50 p-6 rounded-3xl border border-neutral-800/50 flex flex-col gap-4">
+                 <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Librería de Copys Maestros</p>
+                    <span className="text-[10px] text-neutral-600 font-bold">{templates.length} Plantillas</span>
+                 </div>
+                 
+                 <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {templates.map((t, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-neutral-900/50 rounded-xl border border-neutral-800 hover:border-neutral-700 transition-colors group">
+                        <p className="text-[10px] text-neutral-400 truncate flex-1 leading-relaxed">{t}</p>
+                        <button onClick={() => removeTemplate(idx)} className="p-1.5 hover:bg-red-500/10 hover:text-red-500 text-neutral-600 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <label className="text-[9px] uppercase font-black text-neutral-600 px-1">Reglas (Sí/No)</label>
-                        <textarea value={brandRules} onChange={e => setBrandRules(e.target.value)} className="w-full h-24 bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-[11px] outline-none focus:border-indigo-500 transition-all resize-none" />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <label className="text-[9px] uppercase font-black text-neutral-600 px-1">Giro / Contexto</label>
-                        <textarea value={brandContext} onChange={e => setBrandContext(e.target.value)} className="w-full h-24 bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-[11px] outline-none focus:border-indigo-500 transition-all resize-none" />
-                      </div>
-                   </div>
-                   <button onClick={handleUpdateConfig} disabled={isSaving} className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black py-2 rounded-xl hover:bg-indigo-500 hover:text-white transition-all uppercase tracking-widest">
-                      {isSaving ? "Guardando..." : "Actualizar Estrategia"}
-                   </button>
-                </div>
+                    ))}
+                    {templates.length === 0 && <p className="py-4 text-center text-[10px] text-neutral-600 italic">No hay plantillas guardadas aún.</p>}
+                 </div>
+
+                 <div className="flex gap-2">
+                    <input value={newTemplate} onChange={e => setNewTemplate(e.target.value)} placeholder="Añadir nuevo copy universal..." className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-[10px] outline-none focus:border-indigo-500 transition-all" />
+                    <button onClick={addTemplate} className="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-all">
+                      <Plus className="h-4 w-4" />
+                    </button>
+                 </div>
               </div>
             </header>
 
@@ -434,7 +418,7 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
                       <button onClick={handleGenerate} disabled={isGenerating}
                         className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:opacity-30 py-4 rounded-2xl font-black text-white flex items-center justify-center gap-3 transition-all shadow-[0_15px_30px_rgba(99,102,241,0.2)]">
                         {isGenerating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-                        {isGenerating ? "Consultando Estrategia..." : "Generar con IA Visión"}
+                        {isGenerating ? "Analizando para seleccionar..." : "Seleccionar el mejor copy"}
                       </button>
                     </div>
                   </div>
@@ -447,11 +431,11 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
 
                 <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl flex flex-col gap-4 min-h-[300px]">
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Borrador IA</label>
-                    {output && <span className="text-[10px] text-emerald-500 font-black">Ready to Publish</span>}
+                    <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Copi Maestro Seleccionado</label>
+                    {output && <span className="text-[10px] text-emerald-500 font-black">Validado por IA</span>}
                   </div>
                   <textarea value={output} onChange={e => setOutput(e.target.value)} 
-                    placeholder="El copy aparecerá aquí después de analizar el manual y la imagen..." 
+                    placeholder="La IA seleccionará el mejor texto de tu librería basándose en el contenido de la imagen..." 
                     className="w-full flex-1 bg-transparent text-sm leading-relaxed text-neutral-300 outline-none resize-none custom-scrollbar" />
                   
                   {output && (
@@ -519,10 +503,10 @@ OBJETIVO: Escribe un copy que respete perfectamente las reglas y el manual anter
                     </div>
                  ))}
                  {drafts.length === 0 && (
-                   <div className="py-24 text-center text-neutral-700 italic border-2 border-dashed border-neutral-800 rounded-[3rem] flex flex-col items-center gap-4">
-                      <Sparkles className="h-10 w-10 opacity-10" />
-                      <p className="text-sm font-bold uppercase tracking-widest opacity-40">No hay borradores programados aún.<br/>Sincroniza la carpeta para empezar.</p>
-                   </div>
+                    <div className="py-24 text-center text-neutral-700 italic border-2 border-dashed border-neutral-800 rounded-[3rem] flex flex-col items-center gap-4">
+                       <Sparkles className="h-10 w-10 opacity-10" />
+                       <p className="text-sm font-bold uppercase tracking-widest opacity-40">No hay borradores programados aún.<br/>Sincroniza la carpeta para empezar.</p>
+                    </div>
                  )}
               </div>
             </div>
