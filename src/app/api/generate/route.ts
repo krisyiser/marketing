@@ -6,7 +6,9 @@ export const runtime = "nodejs"; // Need nodejs for googleapis
 
 async function getDriveClient() {
   let auth;
+  console.log("[DriveAuth] Checking environment variables...");
   if (process.env.GOOGLE_PRIVATE_KEY) {
+    console.log("[DriveAuth] Found GOOGLE_PRIVATE_KEY, using Individual Vars model");
     let privateKey = process.env.GOOGLE_PRIVATE_KEY;
     privateKey = privateKey.replace(/^["']|["']$/g, '');
     privateKey = privateKey.replace(/\\n/g, '\n');
@@ -22,6 +24,7 @@ async function getDriveClient() {
     });
   } else {
     const CREDENTIALS_PATH = path.join(process.cwd(), "google-credentials.json");
+    console.log("[DriveAuth] No private key in ENV, checking local file:", CREDENTIALS_PATH);
     auth = new google.auth.GoogleAuth({
       keyFile: CREDENTIALS_PATH,
       scopes: ["https://www.googleapis.com/auth/drive.readonly"],
