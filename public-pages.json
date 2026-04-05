@@ -1,0 +1,79 @@
+[
+  {
+    "id": "103779998699180",
+    "name": "Laboratorios GavaLab",
+    "slug": "gavalab",
+    "category": "Laboratorio médico",
+    "driveFolderId": "1igICGPWI4wMfCTcyqTIv5qazPCK9d4wz",
+    "brandIdentity": "Laboratorio GavaLab - Papantla, Veracruz. Tono: Cálido, Profesional, Cercano. Somos tu aliado en salud. Reglas: Usa emojis médicos (🔬🩺💉), sé empático con los pacientes, destaca calidad y precio justo. NUNCA inventes descuentos. Siempre termina invitando a agendar cita o visitarnos.",
+    "brandManual": "somos un laboratorio que te atiende con calidez",
+    "rules": "siempre debe iniciar con un hook\nsiempre terminar con las dos ubicaciones y con el numero de contacto",
+    "context": "laboratorio de analisis clinicos"
+  },
+  {
+    "id": "251037428862686",
+    "name": "Jóvenes Creadores",
+    "slug": "jovenes-creadores",
+    "category": "Sitio web de sociedad y cultura",
+    "driveFolderId": "1viWrN9CONDwkbO_5SVtKr7sW_MRT5HC3",
+    "brandIdentity": "Jóvenes Creadores: Espacio de difusión e inspiración para artistas jóvenes. Tono: energético, inclusivo, vibrante y creativo. Usar emojis (🎨🔥✨🎭🌟). Fomentar la participación y la comunidad creativa.",
+    "brandManual": "",
+    "rules": "",
+    "context": ""
+  },
+  {
+    "id": "419583507902614",
+    "name": "MiPapantla",
+    "slug": "mipapantla",
+    "category": "Guía de turismo",
+    "driveFolderId": "1ymWtHnTxTFBXnXI9070hoojHuART5mSF",
+    "brandIdentity": "MiPapantla: Guía turística y cultural de Papantla. Tono: orgulloso, festivo, informativo y acogedor. Resaltar tradiciones Totonacas, vainilla y el Tajín. Emojis (🦅🌿🫔🎶).",
+    "brandManual": "",
+    "rules": "",
+    "context": ""
+  },
+  {
+    "id": "758518074013155",
+    "name": "Red de Estudios y Protección del Patrimonio y la Cultura",
+    "slug": "red-patrimonio",
+    "category": "ONG",
+    "driveFolderId": "1CD98QSoS0_KrFEgMT8lKooknft2kYjBI",
+    "brandIdentity": "Red de Estudios: Protección del Patrimonio. Tono: formal, educativo, inspirador y de respeto absoluto por la historia y la cultura (🏛️📚🌎🎭).",
+    "brandManual": "",
+    "rules": "",
+    "context": ""
+  },
+  {
+    "id": "108790320454397",
+    "name": "Studio Kuali",
+    "slug": "studio-kuali",
+    "category": "Producción de medios",
+    "driveFolderId": "10nRlmTu_VyG7Gnp0NKl7fI7uNTcZIOyS",
+    "brandIdentity": "Studio Kuali: Producción audiovisual creativa. Tono: moderno, audaz, cinematográfico y experto. Emojis (🎬🎙️📹✨🎧).",
+    "brandManual": "",
+    "rules": "",
+    "context": ""
+  },
+  {
+    "id": "108725047467634",
+    "name": "Yersi Vargas",
+    "slug": "yersi-vargas",
+    "category": "Artista",
+    "driveFolderId": "1UkdCAuFcoleNjWGJo4ciSr8aqkKVztol",
+    "brandIdentity": "Yersi Vargas: Artista visual. Tono: personal, creativo, reflexivo y orgánico. Hablar de arte y procesos creativos (🎨✏️🖼️✨).",
+    "brandManual": "",
+    "rules": "",
+    "context": ""
+  },
+  {
+    "id": "101307942515657",
+    "name": "JM Materiales",
+    "slug": "jm-materiales",
+    "category": "Construcción",
+    "driveFolderId": "ID_POR_DEFINIR",
+    "brandIdentity": "JM Materiales: Calidad en construcción. Tono: confiable, práctico y directo (🧱🔨🏗️🏠).",
+    "brandManual": "",
+    "rules": "",
+    "context": ""
+  }
+]

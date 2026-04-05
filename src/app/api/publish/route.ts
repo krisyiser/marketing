@@ -6,26 +6,26 @@ export async function POST(req: NextRequest) {
   try {
     const { pageId, platform, message, imageUrl } = await req.json();
 
-    // 1. Find the page config to get the token
-    const configPath = path.join(process.cwd(), "pages.config.json");
-    let fileContent = "";
-    
-    if (fs.existsSync(configPath)) {
-      fileContent = fs.readFileSync(configPath, "utf-8");
-    } else if (process.env.PAGES_CONFIG) {
-      fileContent = process.env.PAGES_CONFIG;
-    } else {
-      return NextResponse.json({ error: "Configuration not found" }, { status: 500 });
+    // 1. Load public metadata
+    const publicPath = path.join(process.cwd(), "public-pages.json");
+    if (!fs.existsSync(publicPath)) {
+      return NextResponse.json({ error: "Public configuration not found" }, { status: 500 });
     }
-    
-    const pages = JSON.parse(fileContent);
+    const pages = JSON.parse(fs.readFileSync(publicPath, "utf-8"));
     const page = pages.find((p: any) => p.id === pageId);
 
     if (!page) {
-      return NextResponse.json({ error: "Page not found in config" }, { status: 404 });
+      return NextResponse.json({ error: "Page not found in public config" }, { status: 404 });
     }
 
-    const accessToken = page.accessToken;
+    // 2. Load token from ENV
+    const tokens = JSON.parse(process.env.FB_TOKENS || "{}");
+    const accessToken = tokens[pageId];
+
+    if (!accessToken) {
+       return NextResponse.json({ error: "Missing access token for this page" }, { status: 401 });
+    }
+
     let endpoint = "";
     let body: any = {};
 

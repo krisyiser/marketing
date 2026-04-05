@@ -8,10 +8,14 @@ const CREDENTIALS_PATH = path.join(process.cwd(), "google-credentials.json");
 
 async function getDriveClient() {
   let auth;
-  if (process.env.GOOGLE_CREDENTIALS) {
-    const creds = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  if (process.env.GOOGLE_PRIVATE_KEY) {
     auth = new google.auth.GoogleAuth({
-      credentials: creds,
+      credentials: {
+        type: "service_account",
+        project_id: "socimation-manager",
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      },
       scopes: ["https://www.googleapis.com/auth/drive.readonly"],
     });
   } else {

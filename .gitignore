@@ -2,6 +2,11 @@ google-credentials.json
 pages.config.json
 drafts.json
 get_owner.js
+split_config.js
+get_keys.js
+setup_db.js
+migrate.js
+!public-pages.json
 
 # Dependencies
 node_modules/
