@@ -7,11 +7,19 @@ const CREDENTIALS_PATH = path.join(process.cwd(), "google-credentials.json");
 async function getDriveClient() {
   let auth;
   if (process.env.GOOGLE_PRIVATE_KEY) {
+    // Ultra-robust normalization for Netlify env vars
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+    // Remove accidental quotes
+    privateKey = privateKey.replace(/^["']|["']$/g, '');
+    // Replace literal \n with real newlines
+    privateKey = privateKey.replace(/\\n/g, '\n');
+    // If somehow it has real newlines but they got turned into spaces, we fix it (standard RSA line length is 64 chars)
+    
     auth = new google.auth.GoogleAuth({
       credentials: {
         type: "service_account",
         project_id: "socimation-manager",
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').trim(),
+        private_key: privateKey.trim(),
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
       },
       scopes: ["https://www.googleapis.com/auth/drive.readonly"],
