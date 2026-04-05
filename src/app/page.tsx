@@ -17,6 +17,8 @@ import {
   History,
   Trash2,
   Plus,
+  Menu,
+  X,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
@@ -77,64 +79,70 @@ function DriveExplorer({ folderId, onSelectImage, onSync, isPlanning }: { folder
   const getImageUrl = (fileId: string) => `/api/drive/image/${fileId}`;
 
   const renderGrid = (files: DriveFile[]) => (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar p-1">
       {files.map(img => (
         <button key={img.id} onClick={() => onSelectImage(img)} 
-          className="flex flex-col items-center gap-2 p-2 bg-neutral-950/40 rounded-xl border border-neutral-800 hover:border-indigo-500 hover:bg-indigo-500/5 transition-all group relative">
-          <div className="w-full aspect-square rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800">
-            <img src={getImageUrl(img.id)} alt={img.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+          className="flex flex-col items-center gap-2 p-2 bg-neutral-900 border border-neutral-800 rounded-2xl hover:border-indigo-500 hover:bg-neutral-800 hover:-translate-y-1 hover:shadow-xl transition-all group relative">
+          <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-950 border border-neutral-800">
+            <img src={getImageUrl(img.id)} alt={img.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
           </div>
-          <span className="text-[10px] text-neutral-500 truncate w-full px-1">{img.name}</span>
+          <span className="text-[9px] text-neutral-500 truncate w-full px-1 font-black uppercase tracking-tighter">{img.name}</span>
         </button>
       ))}
-      {files.length === 0 && <div className="col-span-full py-20 text-center text-neutral-600 italic text-sm">No hay imágenes en esta sección.</div>}
+      {files.length === 0 && <div className="col-span-full py-20 text-center text-neutral-600 italic text-sm">No hay contenido visual aquí.</div>}
     </div>
   );
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-neutral-900/80 backdrop-blur-3xl border border-neutral-800 rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-500/10 rounded-2xl">
+          <div className="p-3 bg-blue-500/10 rounded-2xl shadow-inner border border-blue-500/20">
             <HardDrive className="text-blue-400 h-5 w-5" />
           </div>
-          <h3 className="font-bold text-white text-lg">Contenido en Drive</h3>
+          <div>
+            <h3 className="font-black text-white text-lg tracking-tight">Active Drive</h3>
+            <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">Sincronizado con Google</p>
+          </div>
         </div>
-        <div className="flex gap-2">
-            <button onClick={onSync} disabled={isPlanning || isLoading} className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded-xl border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-all">
-                {isPlanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                {isPlanning ? 'Analizando Todo...' : 'Sincronizar Mes'}
+        <div className="flex gap-2 w-full sm:w-auto">
+            <button onClick={onSync} disabled={isPlanning || isLoading} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-indigo-500 text-white text-[10px] font-black uppercase rounded-2xl shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95 disabled:opacity-50">
+                {isPlanning ? <Loader2 className="h-4 w-4 animate-spin font-black" /> : <Sparkles className="h-4 w-4" />}
+                {isPlanning ? 'Planning...' : 'Planificar Todo'}
             </button>
-            <button onClick={() => loadFolder(folderId)} className="p-2 hover:bg-neutral-800 rounded-xl transition-colors">
-              <RefreshCw className={`h-4 w-4 text-neutral-500 ${isLoading ? 'animate-spin text-blue-400' : ''}`} />
+            <button onClick={() => loadFolder(folderId)} className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-2xl transition-all border border-neutral-700">
+              <RefreshCw className={`h-4 w-4 text-neutral-400 ${isLoading ? 'animate-spin text-blue-400' : ''}`} />
             </button>
         </div>
       </div>
 
-      <div className="flex p-1 bg-neutral-950 rounded-2xl gap-1">
-        <button onClick={() => { setActiveTab('posts'); (window as any)._activeTab = 'posts'; }} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'posts' ? 'bg-neutral-800 text-white shadow-lg' : 'text-neutral-500 hover:text-neutral-300'}`}>
+      <div className="flex p-1.5 bg-neutral-950 rounded-2xl gap-1.5 border border-neutral-800">
+        <button onClick={() => { setActiveTab('posts'); (window as any)._activeTab = 'posts'; }} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 ${activeTab === 'posts' ? 'bg-neutral-800 text-white shadow-xl border border-neutral-700' : 'text-neutral-500 hover:text-neutral-300'}`}>
           <LayoutGrid className="h-3.5 w-3.5" />
-          Posts (1:1 / 4:3)
+          Wall Captions
         </button>
-        <button onClick={() => { setActiveTab('stories'); (window as any)._activeTab = 'stories'; }} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'stories' ? 'bg-neutral-800 text-white shadow-lg' : 'text-neutral-500 hover:text-neutral-300'}`}>
+        <button onClick={() => { setActiveTab('stories'); (window as any)._activeTab = 'stories'; }} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 ${activeTab === 'stories' ? 'bg-neutral-800 text-white shadow-xl border border-neutral-700' : 'text-neutral-500 hover:text-neutral-300'}`}>
           <History className="h-3.5 w-3.5" />
-          Historias
+          Stories
         </button>
       </div>
 
-      {isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-xs text-neutral-500 font-medium">Escaneando carpetas de marketing...</p>
-        </div>
-      ) : error ? (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs flex items-center gap-3">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          {error}
-        </div>
-      ) : (
-        driveData && renderGrid((activeTab === 'posts' ? driveData.posts : activeTab === 'stories' ? driveData.stories : driveData.genericImages) || [])
-      )}
+      <div className="relative">
+        {isLoading && (
+            <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-4 rounded-3xl">
+                <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
+                <p className="text-[10px] text-white font-black uppercase tracking-widest animate-pulse">Syncing Library...</p>
+            </div>
+        )}
+        {error ? (
+            <div className="p-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-3xl text-sm flex items-center gap-4">
+                <AlertCircle className="h-6 w-6 shrink-0" />
+                <span className="font-semibold">{error}</span>
+            </div>
+        ) : (
+            driveData && renderGrid((activeTab === 'posts' ? driveData.posts : activeTab === 'stories' ? driveData.stories : driveData.genericImages) || [])
+        )}
+      </div>
     </div>
   );
 }
@@ -149,6 +157,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [templates, setTemplates] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -220,6 +229,7 @@ export default function Home() {
     setSelectedImage(null);
     setOutput("");
     setTemplates(p.templates || []);
+    setIsSidebarOpen(false);
   };
 
   const handleGenerate = async () => {
@@ -321,72 +331,101 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 font-sans flex selection:bg-indigo-500/30">
-      {/* Sidebar */}
-      <nav className="w-72 bg-neutral-900/50 backdrop-blur-xl border-r border-neutral-800 p-8 flex flex-col gap-10 h-screen sticky top-0">
+    <div className="min-h-screen bg-black text-neutral-200 font-sans flex flex-col md:flex-row selection:bg-indigo-500/30">
+      
+      {/* Mobile Top Bar */}
+      <div className="md:hidden flex items-center justify-between p-6 bg-neutral-900 border-b border-neutral-800 sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-500/10 rounded-2xl">
             <Sparkles className="h-6 w-6 text-indigo-400" />
+            <h1 className="text-xl font-black text-white tracking-tighter">SociMation</h1>
+        </div>
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 bg-neutral-800 rounded-xl">
+            {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <nav className={`w-full md:w-80 bg-neutral-900/90 backdrop-blur-3xl border-r border-neutral-800 p-8 flex flex-col gap-10 h-screen sticky top-0 transition-all z-40 ${isSidebarOpen ? 'fixed inset-0' : 'hidden md:flex'}`}>
+        <div className="hidden md:flex items-center gap-3">
+          <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+            <Sparkles className="h-7 w-7 text-indigo-400" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tighter">SociMation</h1>
+          <h1 className="text-3xl font-black text-white tracking-tighter">SociMation</h1>
         </div>
         
-        <div className="flex flex-col gap-2 overflow-y-auto custom-scrollbar">
-          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.2em] px-3 mb-2">Brands</p>
+        <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
+          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.3em] px-4">Managed Brands</p>
           {pages.map(p => (
             <button key={p.id} onClick={() => handleSelectPage(p)} 
-              className={`flex items-center gap-4 p-4 rounded-2xl transition-all text-sm font-bold group ${selectedPage?.id === p.id ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'text-neutral-500 hover:bg-neutral-800/50 hover:text-neutral-300'}`}>
-              <div className={`p-2 rounded-xl transition-colors ${selectedPage?.id === p.id ? 'bg-indigo-500/20' : 'bg-neutral-800 group-hover:bg-neutral-700'}`}>
+              className={`flex items-center gap-4 p-5 rounded-3xl transition-all text-sm font-bold group ${selectedPage?.id === p.id ? 'bg-indigo-500 text-white shadow-2xl shadow-indigo-500/30' : 'text-neutral-500 hover:bg-neutral-800/50 hover:text-neutral-300'}`}>
+              <div className={`p-2.5 rounded-xl transition-colors ${selectedPage?.id === p.id ? 'bg-white/20' : 'bg-neutral-800 group-hover:bg-neutral-700'}`}>
                 <ImageIcon className="h-4 w-4" />
               </div>
               <span className="truncate">{p.name}</span>
             </button>
           ))}
         </div>
+
+        <div className="bg-neutral-950/50 p-6 rounded-[2rem] border border-neutral-800">
+            <p className="text-[9px] text-neutral-600 font-black uppercase tracking-widest mb-3 text-center">Cloud Health</p>
+            <div className="flex justify-between items-center bg-neutral-900 p-3 rounded-2xl border border-neutral-800">
+                <span className="text-[10px] font-bold text-neutral-400">Netlify Build</span>
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+            </div>
+        </div>
       </nav>
 
-      <main className="flex-1 p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-10 overflow-y-auto bg-neutral-950">
         {selectedPage ? (
-          <div className="max-w-6xl mx-auto flex flex-col gap-10 animate-in fade-in duration-500">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-neutral-900/40 p-8 md:p-10 rounded-[3rem] border border-neutral-800 shadow-2xl gap-8">
+          <div className="max-w-7xl mx-auto flex flex-col gap-10 animate-in fade-in slide-in-from-right-10 duration-700">
+            
+            {/* Header Section */}
+            <header className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center bg-neutral-900 border border-neutral-800 rounded-[3rem] p-8 md:p-12 shadow-2xl gap-10">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded-full border border-indigo-500/20">{selectedPage.category}</span>
-                  <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase rounded-full border border-emerald-500/20">Active</span>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="px-4 py-1.5 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase rounded-full border border-indigo-500/20 tracking-widest">{selectedPage.category}</span>
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">{selectedPage.name}</h2>
+                <h2 className="text-4xl sm:text-6xl font-black text-white tracking-tight break-words">{selectedPage.name}</h2>
+                <p className="text-neutral-500 mt-4 text-sm font-medium">Librería maestra activa para selección contextual por Visión IA.</p>
               </div>
               
               {/* COPY LIBRARIAN UI */}
-              <div className="flex-1 w-full bg-neutral-950/50 p-6 rounded-3xl border border-neutral-800/50 flex flex-col gap-4">
+              <div className="w-full xl:w-[450px] bg-black/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-neutral-800 flex flex-col gap-6">
                  <div className="flex justify-between items-center">
-                    <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Librería de Copys Maestros</p>
-                    <span className="text-[10px] text-neutral-600 font-bold">{templates.length} Plantillas</span>
+                    <div className="flex gap-2 items-center">
+                        <FileText className="h-4 w-4 text-indigo-400" />
+                        <p className="text-[11px] font-black text-white uppercase tracking-widest">Master Library</p>
+                    </div>
+                    <span className="px-3 py-1 bg-neutral-800 text-neutral-400 text-[9px] font-black rounded-lg border border-neutral-700">{templates.length} UNITS</span>
                  </div>
                  
-                 <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                 <div className="flex flex-col gap-3 max-h-[160px] overflow-y-auto pr-3 custom-scrollbar">
                     {templates.map((t, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-3 bg-neutral-900/50 rounded-xl border border-neutral-800 hover:border-neutral-700 transition-colors group">
-                        <p className="text-[10px] text-neutral-400 truncate flex-1 leading-relaxed">{t}</p>
-                        <button onClick={() => removeTemplate(idx)} className="p-1.5 hover:bg-red-500/10 hover:text-red-500 text-neutral-600 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                          <Trash2 className="h-3 w-3" />
+                      <div key={idx} className="flex items-start gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded-2xl hover:border-neutral-600 transition-all group">
+                        <div className="h-2 w-2 rounded-full bg-indigo-500/40 mt-1.5 shrink-0" />
+                        <p className="text-[11px] text-neutral-300 leading-relaxed truncate-3-lines flex-1">{t}</p>
+                        <button onClick={() => removeTemplate(idx)} className="p-2 hover:bg-red-500 hover:text-white text-neutral-600 rounded-xl transition-all opacity-0 group-hover:opacity-100">
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     ))}
-                    {templates.length === 0 && <p className="py-4 text-center text-[10px] text-neutral-600 italic">No hay plantillas guardadas aún.</p>}
+                    {templates.length === 0 && <p className="py-6 text-center text-xs text-neutral-600 italic">No hay plantillas de copy autorizadas.</p>}
                  </div>
 
-                 <div className="flex gap-2">
-                    <input value={newTemplate} onChange={e => setNewTemplate(e.target.value)} placeholder="Añadir nuevo copy universal..." className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 text-[10px] outline-none focus:border-indigo-500 transition-all" />
-                    <button onClick={addTemplate} className="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-all">
-                      <Plus className="h-4 w-4" />
+                 <div className="flex gap-3">
+                    <input value={newTemplate} onChange={e => setNewTemplate(e.target.value)} placeholder="Regisrar nueva plantilla..." className="flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl px-5 py-4 text-xs outline-none focus:border-indigo-500 transition-all placeholder:text-neutral-700 font-medium" />
+                    <button onClick={addTemplate} className="p-4 bg-indigo-500 text-white rounded-2xl hover:bg-indigo-600 shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">
+                      <Plus className="h-5 w-5" />
                     </button>
                  </div>
               </div>
             </header>
 
-            <div className="grid lg:grid-cols-5 gap-10">
-              <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+              
+              {/* Drive Column */}
+              <div className="lg:col-span-12 xl:col-span-7">
                 <DriveExplorer 
                    folderId={selectedPage.driveFolderId || ""} 
                    onSelectImage={setSelectedImage} 
@@ -399,54 +438,82 @@ export default function Home() {
                 />
               </div>
 
-              <div className="lg:col-span-2 flex flex-col gap-6">
+              {/* Editor/AI Column */}
+              <div className="lg:col-span-12 xl:col-span-5 flex flex-col gap-8">
+                
+                {/* Visual Preview Card */}
                 {selectedImage ? (
-                  <div className="bg-indigo-500/10 border-2 border-indigo-500/30 rounded-3xl p-6 flex flex-col gap-6 animate-in zoom-in duration-300">
-                    <img src={`/api/drive/image/${selectedImage.id}`} alt="Selected" className="w-full aspect-video object-cover rounded-2xl shadow-2xl border border-indigo-500/20" />
-                    <div className="flex flex-col gap-4">
-                      <div className="flex gap-2">
-                        <select value={platform} onChange={e => setPlatform(e.target.value)} className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs flex-1 text-white font-bold outline-none">
-                          <option>Facebook</option>
-                          <option>Instagram</option>
-                        </select>
-                        <select value={format} onChange={e => setFormat(e.target.value)} className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs flex-1 text-white font-bold outline-none">
-                          <option>Post (1:1)</option>
-                          <option>Post (4:3)</option>
-                          <option>Story</option>
-                        </select>
+                  <div className="bg-neutral-900 border border-neutral-800 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-500">
+                    <div className="relative group overflow-hidden bg-black">
+                        {/* Blurred background for nice aspect ratio handling */}
+                        <img src={`/api/drive/image/${selectedImage.id}`} className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-110" />
+                        
+                        <div className="relative p-6 flex items-center justify-center min-h-[400px]">
+                            <img src={`/api/drive/image/${selectedImage.id}`} alt="Selected" className="max-w-full max-h-[500px] object-contain rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/5" />
+                        </div>
+                    </div>
+                    
+                    <div className="p-8 flex flex-col gap-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                             <p className="text-[10px] font-black text-neutral-600 uppercase tracking-widest px-1">Network</p>
+                             <select value={platform} onChange={e => setPlatform(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-xs text-white font-black outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer">
+                                <option>Facebook</option>
+                                <option>Instagram</option>
+                             </select>
+                        </div>
+                        <div className="space-y-2">
+                             <p className="text-[10px] font-black text-neutral-600 uppercase tracking-widest px-1">Ratio / Type</p>
+                             <select value={format} onChange={e => setFormat(e.target.value)} className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-xs text-white font-black outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer">
+                                <option>Post (1:1)</option>
+                                <option>Post (4:3)</option>
+                                <option>Story (9:16)</option>
+                             </select>
+                        </div>
                       </div>
+                      
                       <button onClick={handleGenerate} disabled={isGenerating}
-                        className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:opacity-30 py-4 rounded-2xl font-black text-white flex items-center justify-center gap-3 transition-all shadow-[0_15px_30px_rgba(99,102,241,0.2)]">
-                        {isGenerating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-                        {isGenerating ? "Analizando para seleccionar..." : "Seleccionar el mejor copy"}
+                        className="w-full bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] disabled:opacity-30 py-5 rounded-[1.5rem] font-black text-white flex items-center justify-center gap-4 transition-all shadow-[0_15px_40px_rgba(99,102,241,0.3)]">
+                        {isGenerating ? <Loader2 className="h-6 w-6 animate-spin" /> : <Sparkles className="h-6 w-6" />}
+                        <span className="uppercase tracking-widest text-[11px]">{isGenerating ? "Analyzing Content..." : "Autoselect Best Caption"}</span>
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-neutral-900/50 border-2 border-dashed border-neutral-800 rounded-3xl p-10 flex flex-col items-center justify-center text-center gap-4 text-neutral-600">
-                    <ImageIcon className="h-10 w-10 opacity-20" />
-                    <p className="text-sm font-medium">Selecciona una imagen de Drive<br/>para empezar la magia.</p>
+                  <div className="bg-neutral-900 border-2 border-dashed border-neutral-800 rounded-[3rem] p-24 flex flex-col items-center justify-center text-center gap-6 group hover:border-neutral-700 transition-all">
+                    <div className="p-6 bg-neutral-800/50 rounded-[2rem] border border-neutral-700 group-hover:scale-110 transition-transform">
+                        <ImageIcon className="h-12 w-12 text-neutral-500" />
+                    </div>
+                    <div>
+                        <p className="text-lg font-black text-white">No Visual Selected</p>
+                        <p className="text-xs text-neutral-600 font-medium mt-2 leading-relaxed">Pick an asset from the explorer<br/>to begin the automation process.</p>
+                    </div>
                   </div>
                 )}
 
-                <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl flex flex-col gap-4 min-h-[300px]">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Copi Maestro Seleccionado</label>
-                    {output && <span className="text-[10px] text-emerald-500 font-black">Validado por IA</span>}
+                {/* Output Card */}
+                <div className="bg-neutral-900 border border-neutral-800 rounded-[2.5rem] p-10 shadow-2xl flex flex-col gap-6 min-h-[400px]">
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center">
+                        <FileText className="h-4 w-4 text-emerald-400" />
+                        <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Final Post Payload</label>
+                    </div>
+                    {output && <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500 text-black text-[9px] font-black rounded-lg uppercase tracking-tighter">Verified Content</div>}
                   </div>
+                  
                   <textarea value={output} onChange={e => setOutput(e.target.value)} 
-                    placeholder="La IA seleccionará el mejor texto de tu librería basándose en el contenido de la imagen..." 
-                    className="w-full flex-1 bg-transparent text-sm leading-relaxed text-neutral-300 outline-none resize-none custom-scrollbar" />
+                    placeholder="The AI curator will automatically extract and present the most relevant template from your master library here..." 
+                    className="w-full flex-1 bg-neutral-950/30 border border-neutral-800/50 rounded-2xl p-6 text-[13px] leading-relaxed text-neutral-200 outline-none resize-none focus:border-indigo-500/30 transition-all custom-scrollbar font-medium" />
                   
                   {output && (
-                    <div className="pt-6 border-t border-neutral-800 flex flex-col gap-3">
+                    <div className="pt-6 border-t border-neutral-800 flex flex-col gap-4">
                       <button onClick={handlePublish} disabled={isPublishing} 
-                        className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 py-4 rounded-2xl font-black text-white flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(59,130,246,0.2)] transition-all">
-                        {isPublishing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                        {isPublishing ? "Publicando..." : "Lanzar Publicación"}
+                        className="w-full bg-blue-500 hover:bg-blue-600 active:scale-[0.98] disabled:opacity-50 py-5 rounded-[1.5rem] font-black text-white flex items-center justify-center gap-4 shadow-[0_15px_40px_rgba(59,130,246,0.3)] transition-all">
+                        {isPublishing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6" />}
+                        <span className="uppercase tracking-widest text-[11px]">{isPublishing ? "Propagating..." : "Deploy to Digital Wall"}</span>
                       </button>
                       {publishStatus && (
-                        <div className={`p-4 rounded-2xl text-[10px] font-black text-center uppercase tracking-widest animate-in fade-in zoom-in ${publishStatus.startsWith('Error') ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                        <div className={`p-5 rounded-2xl text-[10px] font-black text-center uppercase tracking-[0.2em] animate-in fade-in zoom-in-95 border ${publishStatus.startsWith('Error') ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
                           {publishStatus}
                         </div>
                       )}
@@ -457,34 +524,50 @@ export default function Home() {
             </div>
 
             {/* MASTER PLANNER TABLE */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-[3rem] p-10 shadow-2xl animate-in slide-in-from-bottom duration-700">
-              <div className="flex justify-between items-center mb-10">
-                <div className="flex items-center gap-4">
-                   <div className="p-3 bg-emerald-500/10 rounded-2xl">
-                    <LayoutGrid className="h-6 w-6 text-emerald-400" />
+            <div className="bg-neutral-900 border border-neutral-800 rounded-[3.5rem] p-8 sm:p-12 shadow-2xl mb-10 overflow-hidden">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+                <div className="flex items-center gap-5">
+                   <div className="p-4 bg-emerald-500/10 rounded-[1.5rem] border border-emerald-500/20">
+                    <LayoutGrid className="h-8 w-8 text-emerald-400" />
                    </div>
-                   <h3 className="text-2xl font-black text-white uppercase tracking-tight">Planificador Maestro</h3>
+                   <div>
+                        <h3 className="text-3xl font-black text-white uppercase tracking-tight">Timeline Planner</h3>
+                        <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] mt-1">Scheduled Automation Queue</p>
+                   </div>
                 </div>
-                <div className="flex gap-4 items-center">
-                  <span className="text-xs text-neutral-500">Borradores generados: {drafts.length}</span>
-                  <button className="bg-neutral-800 px-6 py-3 rounded-2xl text-[10px] font-black uppercase text-neutral-300 hover:text-white transition-all">Exportar PDF</button>
+                <div className="flex gap-4 items-center w-full md:w-auto">
+                  <div className="bg-black/40 px-6 py-4 rounded-2xl border border-neutral-800 flex-1 md:flex-none">
+                    <span className="text-[10px] font-black text-neutral-600 uppercase tracking-widest mr-3">Queue Size</span>
+                    <span className="text-white font-black text-sm">{drafts.length}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                 {drafts.map(d => (
-                    <div key={d.id} className="flex gap-6 p-6 bg-neutral-950 rounded-3xl border border-neutral-800 hover:border-indigo-500/50 transition-all group">
-                       <img src={`/api/drive/image/${d.id}`} className="w-24 h-24 rounded-2xl object-cover border border-neutral-800 shadow-lg" alt="Thumbnail" />
-                       <div className="flex-1 flex flex-col justify-between pt-2">
-                          <div className="flex justify-between items-center mb-2">
-                             <p className="text-[10px] font-black text-neutral-600 uppercase">Sugerencia de post</p>
+              <div className="grid grid-cols-1 gap-6">
+                 {drafts.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(d => (
+                    <div key={d.id} className="flex flex-col lg:flex-row gap-8 p-8 bg-neutral-950 border border-neutral-800 hover:border-indigo-500/40 rounded-[2.5rem] transition-all group relative overflow-hidden">
+                       <div className="absolute top-0 right-0 p-6">
+                           <span className={`px-4 py-1.5 text-[9px] font-black rounded-lg uppercase tracking-widest border ${d.type === 'posts' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-pink-500/10 text-pink-400 border-pink-500/20'}`}>
+                                {d.type === 'posts' ? 'Feed Post' : 'Story Content'}
+                           </span>
+                       </div>
+                       
+                       <img src={`/api/drive/image/${d.id}`} className="w-full lg:w-40 h-40 rounded-[2rem] object-cover border border-neutral-800 shadow-2xl group-hover:scale-105 transition-transform" alt="Thumbnail" />
+                       
+                       <div className="flex-1 flex flex-col gap-6 pt-2">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                             <div>
+                                <p className="text-[10px] font-black text-neutral-600 uppercase tracking-widest">Automation Draft</p>
+                                <p className="text-xs text-neutral-400 font-bold">{d.name}</p>
+                             </div>
                              <input type="date" defaultValue={d.date} onChange={(e) => {
                                const updated = drafts.map(item => item.id === d.id ? { ...item, date: e.target.value } : item);
                                setDrafts(updated);
                                fetch("/api/pages/drafts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pageId: selectedPage.id, drafts: updated }) });
-                             }} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-1 text-[10px] font-bold text-white outline-none focus:border-indigo-500" />
+                             }} className="bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-3 text-[10px] font-black text-white outline-none focus:border-indigo-500 transition-all shadow-inner" />
                           </div>
-                          <textarea className="w-full bg-transparent text-sm text-neutral-300 focus:text-white outline-none resize-none custom-scrollbar" rows={3} defaultValue={d.copy} 
+                          
+                          <textarea className="w-full bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 text-[13px] leading-relaxed text-neutral-400 focus:text-white outline-none resize-none custom-scrollbar font-medium" rows={3} defaultValue={d.copy} 
                             onBlur={(e) => {
                               const updated = drafts.map(item => item.id === d.id ? { ...item, copy: e.target.value } : item);
                               setDrafts(updated);
@@ -492,28 +575,27 @@ export default function Home() {
                             }}
                           />
                        </div>
-                       <div className="w-48 flex flex-col justify-between items-end pb-2">
-                          <span className={`px-3 py-1 text-[10px] font-black rounded-lg ${d.type === 'posts' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-pink-500/10 text-pink-400'}`}>
-                             {d.type === 'posts' ? 'Post (1:1 / 4:3)' : 'Historias'}
-                          </span>
-                          <button onClick={() => { setOutput(d.copy); setSelectedImage({ id: d.id, name: d.name, mimeType: 'image/jpeg' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="p-3 bg-neutral-900 rounded-xl text-neutral-500 hover:text-white transition-all shadow-md">
-                             <Send className="h-4 w-4" />
+                       
+                       <div className="flex lg:flex-col justify-end lg:justify-between items-center gap-4 lg:py-4">
+                          <button onClick={() => { setOutput(d.copy); setSelectedImage({ id: d.id, name: d.name, mimeType: 'image/jpeg' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 lg:flex-none p-5 bg-indigo-500 text-white rounded-[1.5rem] hover:bg-indigo-600 shadow-xl shadow-indigo-500/20 active:scale-95 transition-all w-full flex justify-center">
+                             <Send className="h-5 w-5" />
                           </button>
                        </div>
                     </div>
                  ))}
                  {drafts.length === 0 && (
-                    <div className="py-24 text-center text-neutral-700 italic border-2 border-dashed border-neutral-800 rounded-[3rem] flex flex-col items-center gap-4">
-                       <Sparkles className="h-10 w-10 opacity-10" />
-                       <p className="text-sm font-bold uppercase tracking-widest opacity-40">No hay borradores programados aún.<br/>Sincroniza la carpeta para empezar.</p>
+                    <div className="py-32 text-center text-neutral-700 italic border-2 border-dashed border-neutral-800 rounded-[3rem] flex flex-col items-center gap-6 opacity-30">
+                       <Sparkles className="h-16 w-16" />
+                       <p className="text-sm font-black uppercase tracking-[0.4em]">Chronology Empty<br/>Sync drive to populate queue</p>
                     </div>
                  )}
               </div>
             </div>
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center py-20 animate-pulse">
-            <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
+          <div className="min-h-[80vh] flex flex-col items-center justify-center gap-8 animate-pulse text-neutral-800">
+            <Loader2 className="h-16 w-16 animate-spin" />
+            <p className="font-black uppercase tracking-[0.5em] text-sm italic">Initializing Neural Connection...</p>
           </div>
         )}
       </main>
