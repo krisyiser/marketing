@@ -83,9 +83,22 @@ function DriveExplorer({ folderId, onSync, isPlanning }: { folderId: string; onS
     loadFolder(folderId);
   }, [folderId, loadFolder]);
 
-  const handleSyncClick = () => {
+  const shuffleArray = (array: any[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  const handleSyncClick = (shuffle: boolean = false) => {
     if (!driveData?.posts) return;
-    onSync(driveData.posts);
+    let files = driveData.posts;
+    if (shuffle) {
+      files = shuffleArray(files);
+    }
+    onSync(files);
   };
 
   return (
@@ -96,15 +109,21 @@ function DriveExplorer({ folderId, onSync, isPlanning }: { folderId: string; onS
             <HardDrive className="text-blue-400 h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-black text-white text-xl tracking-tight uppercase tracking-[0.05em]">Repositorio de Medios</h3>
-            <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-1">Imágenes detectadas en Google Drive</p>
+            <h3 className="font-black text-white text-xl tracking-tight uppercase tracking-[0.05em]">Assets del Mes</h3>
+            <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-1">Imágenes listas en Drive</p>
           </div>
         </div>
         
-        <button onClick={handleSyncClick} disabled={isPlanning || isLoading || !driveData?.posts} className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white text-[11px] font-black uppercase rounded-[1.5rem] shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-30 tracking-widest">
-            {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-            {isPlanning ? 'Armando Campaña...' : 'Generar Campaña del Mes'}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <button onClick={() => handleSyncClick(true)} disabled={isPlanning || isLoading || !driveData?.posts} className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-neutral-800 text-neutral-400 text-[11px] font-black uppercase rounded-[1.5rem] border border-neutral-700 hover:bg-neutral-700 hover:text-white transition-all active:scale-95 disabled:opacity-30 tracking-widest">
+                <RefreshCw className="h-4 w-4" />
+                Mix de Contenido
+            </button>
+            <button onClick={() => handleSyncClick(false)} disabled={isPlanning || isLoading || !driveData?.posts} className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-10 py-4 bg-indigo-600 text-white text-[11px] font-black uppercase rounded-[1.5rem] shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-30 tracking-widest">
+                {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+                {isPlanning ? 'Armando...' : 'Generar Campaña'}
+            </button>
+        </div>
       </div>
 
       {isLoading ? (
