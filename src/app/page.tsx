@@ -233,36 +233,19 @@ export default function Home() {
   };
 
   const handleGenerate = async () => {
-    if (!selectedPage || !selectedImage) return;
+    if (!selectedPage || !selectedImage || templates.length === 0) return;
     setIsGenerating(true);
-    setOutput("");
     setPublishStatus(null);
     
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          prompt: `ELIGE EL MEJOR COPY DE ESTA LISTA BASÁNDOTE EN LA IMAGEN:\n\n${templates.join('\n---\n')}`, 
-          platform, 
-          format,
-          selectedId: selectedImage.id,
-          imageUrl: `${window.location.origin}/api/drive/image/${selectedImage.id}`
-        }),
-      });
-      if (!response.body) throw new Error("No response body");
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        setOutput(prev => prev + decoder.decode(value, { stream: true }));
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
+    // SISTEMA DE ROTACIÓN: Elegimos uno al azar o basado en el tiempo para que siempre varíe
+    const randomIndex = Math.floor(Math.random() * templates.length);
+    const selectedCopy = templates[randomIndex];
+    
+    // Simulamos una pequeña carga para mantener la sensación de proceso premium
+    setTimeout(() => {
+      setOutput(selectedCopy);
       setIsGenerating(false);
-    }
+    }, 600);
   };
 
   const handlePublish = async () => {
@@ -290,36 +273,26 @@ export default function Home() {
   };
 
   const handleBatchGenerate = async (files: DriveFile[], category: 'posts' | 'stories') => {
-    if (!selectedPage || files.length === 0) return;
+    if (!selectedPage || files.length === 0 || templates.length === 0) return;
     setIsPlanning(true);
     const finalDrafts: any[] = [];
 
-    for (const file of files) {
-      const fullPrompt = `ELIGE EL MEJOR COPY DE ESTA LISTA BASÁNDOTE EN LA IMAGEN:\n\n${templates.join('\n---\n')}`;
+    // SISTEMA DE DISTRIBUCIÓN EQUITATIVA: Rotamos los copys entre todos los archivos
+    files.forEach((file, index) => {
+      const templateIndex = index % templates.length;
+      const fullText = templates[templateIndex];
 
-      try {
-        const response = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: fullPrompt, platform, format, selectedId: file.id, imageUrl: `${window.location.origin}/api/drive/image/${file.id}` }),
-        });
-        
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let fullText = "";
+      finalDrafts.push({ 
+        id: file.id, 
+        name: file.name, 
+        copy: fullText, 
+        date: new Date().toISOString().split('T')[0], 
+        pageId: selectedPage.id, 
+        type: category 
+      });
+    });
 
-        while (reader) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          fullText += decoder.decode(value, { stream: true });
-          setDrafts(prev => {
-             const others = prev.filter(d => d.id !== file.id);
-             return [...others, { id: file.id, name: file.name, copy: fullText, date: new Date().toISOString().split('T')[0], pageId: selectedPage.id, type: category }];
-          });
-        }
-        finalDrafts.push({ id: file.id, name: file.name, copy: fullText, date: new Date().toISOString().split('T')[0], pageId: selectedPage.id, type: category });
-      } catch (err) { console.error("Batch error:", err); }
-    }
+    setDrafts(finalDrafts);
 
     await fetch("/api/pages/drafts", {
       method: "POST",
