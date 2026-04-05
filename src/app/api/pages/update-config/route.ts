@@ -4,8 +4,8 @@ import path from "path";
 
 export async function POST(req: NextRequest) {
   try {
-    const { pageId, manual, rules, context } = await req.json();
-    const configPath = path.join(process.cwd(), "pages.config.json");
+    const { pageId, templates } = await req.json();
+    const configPath = path.join(process.cwd(), "public-pages.json");
     
     if (!fs.existsSync(configPath)) {
       return NextResponse.json({ error: "Config file not found" }, { status: 404 });
@@ -18,10 +18,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Page not found" }, { status: 404 });
     }
 
-    // Update or initialize the new fields
-    pages[pageIndex].brandManual = manual;
-    pages[pageIndex].rules = rules;
-    pages[pageIndex].context = context;
+    // Update with new templates
+    pages[pageIndex].templates = templates;
 
     fs.writeFileSync(configPath, JSON.stringify(pages, null, 2));
 
